@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  hello-sam
+
+  Sample SAM Template for hello-sam
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 300
+
+Resources:
+  ImageResizerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      BinaryMediaTypes:
+        - application~1octet-stream
+        - image~1png
+        - image~1apng
+        - image~1gif
+        - image~1x-icon
+        - image~1jpeg
+        - image~1webp
+        - image~1tiff
+        - image~1bmp
+        - image~1svg+xml
+        - multipart~1form-data
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          version: '1.0'
+          title: !Ref AWS::StackName
+        paths:
+          "/resize":
+            post:
+              produces:
+                - image/png
+              requesBody:
+                description: image to resize
+                required: true
+                content:
+                  application/octet-stream:
+                    schema:
+                      type: string
+                      format: binary
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ImageResizerFunction.Arn}/invocations
+                httpMethod: POST
+                contentHandling: CONVERT_TO_BINARY
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: hello-world/
+      Handler: app.lambdaHandler
+      Runtime: nodejs12.x
+      Events:
+        HelloWorld:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /hello
+            Method: get
+  ImageResizerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: image-resizer/
+      Handler: app.lambdaHandler
+      Runtime: nodejs12.x
+      Events:
+        ImageResizer:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /resize
+            Method: post
+            RestApiId:
+              Ref: ImageResizerApi
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  HelloWorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  HelloWorldFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt HelloWorldFunctionRole.Arn
+  ImageResizerApi:
+    Description: "API Gateway endpoint URL for Prod stage for Image Resize function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/resize/"
+  ImageResizerFunction:
+    Description: "ImageResizer Lambda Function ARN"
+    Value: !GetAtt ImageResizerFunction.Arn
+  ImageResizerFunctionIamRole:
+    Description: "Implicit IAM Role created for ImageResizer function"
+    Value: !GetAtt ImageResizerFunctionRole.Arn

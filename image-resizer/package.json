@@ -1,0 +1,14 @@
+{
+  "name": "image-resizer",
+  "version": "1.0.0",
+  "description": "This is test lambda function that just resizes images",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dima Kurilo",
+  "license": "ISC",
+  "dependencies": {
+    "sharp": "^0.25.4"
+  }
+}
