@@ -7,7 +7,7 @@ Use this AWS Sam version:
 https://github.com/DKurilo/aws-sam-cli/tree/docker-invoke-stdin  
 PR is here:  
 https://github.com/awslabs/aws-sam-cli/pull/2105  
-Just clone repo and build/install with `make init`  
+Just clone repo, switch to `docker-invoke-stdin` branch and build/install with `make init`  
 
 ## How to start
 
